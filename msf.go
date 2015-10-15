@@ -16,6 +16,19 @@ var serverHost = flag.String("s", "127.0.0.1", "Set Pure Data server host")
 var serverPort = flag.Int("p", 9001, "Set Pure Data server port")
 var device = flag.String("d", "wlan0", "Set device to listen on")
 
+type Activity struct {
+	packets int
+	since   time.Time
+}
+
+func (self *Activity) increment() {
+	self.packets++
+}
+
+func (self *Activity) currentPackets() int {
+	return self.packets
+}
+
 func main() {
 	flag.Parse()
 
@@ -48,10 +61,10 @@ func main() {
 	fmt.Println(handle.LinkType())
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 	client := osc.NewClient(*serverHost, *serverPort)
+	var m = make(map[string]*Activity)
 
 	for packet := range packetSource.Packets() {
 		fmt.Println(packet)
-		go playSound(client)
 		// Let's see if the packet is an ethernet packet
 		ethernetLayer := packet.Layer(layers.LayerTypeEthernet)
 		if ethernetLayer != nil {
@@ -66,13 +79,54 @@ func main() {
 		ip4Layer := packet.Layer(layers.LayerTypeIPv4)
 		if ip4Layer != nil {
 			var ip = ip4Layer.(*layers.IPv4)
+			_, ok := m[ip.SrcIP.String()]
+			if ok {
+				p := m[ip.SrcIP.String()]
+				p.increment()
+			} else {
+				m[ip.SrcIP.String()] = &Activity{1, time.Now()}
+			}
+			_, ok = m[ip.DstIP.String()]
+			if ok {
+				p := m[ip.DstIP.String()]
+				p.increment()
+			} else {
+				m[ip.DstIP.String()] = &Activity{1, time.Now()}
+			}
 			fmt.Println("Source IP: ", ip.SrcIP)
 			fmt.Println("Destination IP: ", ip.DstIP)
+		}
+
+		c := 0
+		for key, value := range m {
+			elapsed := time.Since(value.since)
+			pps := float64(value.currentPackets()) / elapsed.Seconds()
+			if c == 0 {
+				if pps > 2 {
+					sendMessage(client, 4)
+				} else if pps > 1.5 {
+					sendMessage(client, 3)
+				} else if pps > 1.0 {
+					sendMessage(client, 2)
+				} else if pps > 0.5 {
+					sendMessage(client, 1)
+				} else {
+					sendMessage(client, 0)
+					delete(m, key)
+				}
+			}
+			c++
+			fmt.Println("Key:", key, "elapsed:", elapsed, "Packets:", value.currentPackets(), "pps:", pps)
 		}
 		fmt.Println()
 	}
 }
 
+func sendMessage(client *osc.Client, level int) {
+	msg := osc.NewMessage("/instrument/kick")
+	msg.Append(int32(level))
+	client.Send(msg)
+}
 func playSound(client *osc.Client) {
 	msg := osc.NewMessage("/instrument/kick")
 	msg.Append(int32(1))
