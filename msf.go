@@ -95,11 +95,11 @@ func mapDrumLevel(bps float64) int {
 func mapChordLevel(bps float64) int {
 	var level int
 	if bps > 100 {
-		level = 4
-	} else if bps > 70 {
 		level = 3
-	} else if bps > 40 {
+	} else if bps > 70 {
 		level = 2
+	} else if bps > 40 {
+		level = 1
 	} else if bps > 10 {
 		level = 0
 	}
