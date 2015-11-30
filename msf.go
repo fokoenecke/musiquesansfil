@@ -48,6 +48,12 @@ type instrument struct {
 	sendMessage        func(client *osc.Client, level int, speed int, instrument string)
 }
 
+type ticker struct {
+	sync.RWMutex
+	msgDelay   time.Duration
+	resetDelay time.Duration
+}
+
 func mapSpeedLevel(pps float64) int {
 	var level int
 	if pps > 6 {
@@ -135,7 +141,7 @@ func adjustLevel(client *activity, targetLevel int) {
 
 type data struct{}
 
-func hello(w http.ResponseWriter, r *http.Request) {
+func index(w http.ResponseWriter, r *http.Request) {
 	t, _ := template.ParseFiles("tmpl/index.html")
 
 	val := data{}
@@ -160,11 +166,32 @@ func serv() *socketio.Server {
 	})
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", hello)
+	mux.HandleFunc("/", index)
 	mux.Handle("/socket.io/", server)
 	go http.ListenAndServe(":8000", mux)
 
 	return server
+}
+
+func oscServ(t *ticker) {
+	addr := "0.0.0.0:9001"
+	server := &osc.Server{Addr: addr}
+
+	server.Handle("/metro", func(msg *osc.Message) {
+		osc.PrintMessage(msg)
+		if msg.CountArguments() == 1 {
+			fmt.Println("message has attr")
+			millis := time.Millisecond * time.Duration(msg.Arguments[0].(int32))
+
+			t.Lock()
+			t.msgDelay = millis
+			t.resetDelay = millis * 4
+			t.Unlock()
+
+		}
+	})
+
+	go server.ListenAndServe()
 }
 
 func main() {
@@ -216,17 +243,20 @@ func main() {
 	}
 
 	server := serv()
-	ticker := time.NewTicker(time.Second * 2)
+	t := &ticker{msgDelay: time.Duration(2) * time.Second, resetDelay: time.Duration(8) * time.Second}
+	oscServ(t)
+
 	go func() {
-		for t := range ticker.C {
-			fmt.Println("Tick at", t)
+		for {
 			clients.Lock()
+
 			for key, value := range clients.m {
 				elapsed := time.Since(value.since)
 				pps := float64(value.currentPackets()) / elapsed.Seconds()
 				bps := float64(value.sizeSum) / elapsed.Seconds()
 
 				instrument, ok := instruments[value.instrument]
+				info := ""
 				if ok {
 					targetLevel := instrument.mapLevel(bps)
 					if targetLevel == 0 {
@@ -237,15 +267,40 @@ func main() {
 					speed := mapSpeedLevel(pps)
 					instrument.adjustCurrentLevel(value, targetLevel)
 					instrument.sendMessage(client, value.currentLevel, speed, instrument.name)
+
+					info = fmt.Sprintf("MAC: %s, instrument: %s, pps: %f, bps: %f, elapsed: %d", key, instrument.name, pps, bps, elapsed)
+					server.BroadcastTo("chat", "chat message", info)
 				}
-				fmt.Println("Key:", key, "instrument:", value.instrument, "elapsed:", elapsed, "Packets:", value.currentPackets(), "pps:", pps, "bps:", bps)
-				server.BroadcastTo("chat", "chat message", key)
 			}
 			if len(clients.m) > 0 {
 				fmt.Println()
 			}
-
 			clients.Unlock()
+
+			t.RLock()
+			var dl = t.msgDelay
+			fmt.Println("msg tick at", t.msgDelay)
+			t.RUnlock()
+			time.Sleep(dl)
+		}
+	}()
+
+	go func() {
+		for {
+			clients.Lock()
+
+			for _, value := range clients.m {
+				value.since = time.Now()
+				value.packets = 0
+				value.sizeSum = 0
+			}
+			clients.Unlock()
+
+			t.RLock()
+			var dl = t.resetDelay
+			fmt.Println("reset tick at", t.resetDelay)
+			t.RUnlock()
+			time.Sleep(dl)
 		}
 	}()
 
@@ -295,17 +350,7 @@ func main() {
 				clients.m[ethernetPacket.DstMAC.String()] = &activity{1, packetLength, time.Now(), instrument, 0}
 			}
 			clients.Unlock()
-
 		}
-
-		ip4Layer := packet.Layer(layers.LayerTypeIPv4)
-		if ip4Layer != nil {
-			//var ip = ip4Layer.(*layers.IPv4)
-			//fmt.Println("Source IP: ", ip.SrcIP)
-			//fmt.Println("Destination IP: ", ip.DstIP)
-		}
-
-		//fmt.Println()
 	}
 }
 

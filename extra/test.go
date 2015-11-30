@@ -25,7 +25,7 @@ func hello(w http.ResponseWriter, r *http.Request) {
 	t.Execute(w, val)
 }
 
-func main() {
+func main2() {
 
 	server, err := socketio.NewServer(nil)
 	if err != nil {
@@ -55,19 +55,22 @@ func main() {
 
 }
 
-func main2() {
-
+func main() {
+	flag.Parse()
 	client := osc.NewClient(*serverHost, *serverPort)
 	fmt.Println("server:", *serverHost, "port:", *serverPort)
 
 	c := 0
 
 	for {
-
+		// testMessage(client)
 		sendMessage(client, ((c+rand.Intn(4))%4)+1, "kick")
 		sendMessage(client, ((c+rand.Intn(4))%4)+1, "snare")
-		sendMessage(client, ((c+rand.Intn(4))%4)+1, "bass")
+		sendMelodyMessage(client, ((c+rand.Intn(4))%4)+1, ((c+rand.Intn(4))%4)+1, "bass")
 		sendMessage(client, ((c+rand.Intn(4))%4)+1, "hh")
+		sendMelodyMessage(client, ((c+rand.Intn(3))%3)+1, ((c+rand.Intn(4))%4)+1, "chords")
+		sendMelodyMessage(client, ((c+rand.Intn(8))%8)+1, ((c+rand.Intn(4))%4)+1, "melody")
+
 		dur := time.Duration(rand.Intn(5)) * time.Second
 		fmt.Println(dur)
 		time.Sleep(dur)
@@ -81,5 +84,18 @@ func sendMessage(client *osc.Client, level int, instrument string) {
 	fmt.Println("sending:", level, "to:", instrument)
 	msg := osc.NewMessage("/instrument/" + instrument)
 	msg.Append(int32(level))
+	client.Send(msg)
+}
+
+func sendMelodyMessage(client *osc.Client, level int, speed int, instrument string) {
+	msg := osc.NewMessage("/instrument/" + instrument)
+	fmt.Println("sending", level, ",", speed, "to", instrument)
+	msg.Append(int32(level))
+	msg.Append(int32(speed))
+	client.Send(msg)
+}
+
+func testMessage(client *osc.Client) {
+	msg := osc.NewMessage("/metro")
 	client.Send(msg)
 }
