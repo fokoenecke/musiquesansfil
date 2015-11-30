@@ -313,8 +313,7 @@ func main() {
 		if ethernetLayer != nil {
 			// fmt.Println("Ethernet layer detected.")
 			ethernetPacket, _ := ethernetLayer.(*layers.Ethernet)
-			// fmt.Println("Source MAC: ", ethernetPacket.SrcMAC)
-			// fmt.Println("Destination MAC: ", ethernetPacket.DstMAC)
+			fmt.Println("Source MAC: ", ethernetPacket.SrcMAC, "Destination MAC: ", ethernetPacket.DstMAC)
 			// Ethernet type is typically IPv4 but could be ARP or other
 			// fmt.Println("Ethernet type: ", ethernetPacket.EthernetType)
 
