@@ -92,6 +92,20 @@ func mapDrumLevel(bps float64) int {
 	return level
 }
 
+func mapChordLevel(bps float64) int {
+	var level int
+	if bps > 100 {
+		level = 4
+	} else if bps > 70 {
+		level = 3
+	} else if bps > 40 {
+		level = 2
+	} else if bps > 10 {
+		level = 0
+	}
+	return level
+}
+
 func mapMelodyLevel(bps float64) int {
 	var level int
 	if bps > 150 {
@@ -241,6 +255,7 @@ func main() {
 		2: &instrument{"hh", mapDrumLevel, adjustDrumLevel, sendDrumMessage},
 		3: &instrument{"bass", mapMelodyLevel, adjustMelodyLevel, sendMelodyMessage},
 		4: &instrument{"melody", mapMelodyLevel, adjustMelodyLevel, sendMelodyMessage},
+		5: &instrument{"chords", mapChordLevel, adjustLevel, sendMelodyMessage},
 	}
 
 	server := serv()

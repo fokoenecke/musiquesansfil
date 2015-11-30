@@ -63,13 +63,13 @@ func main() {
 	c := 0
 
 	for {
-		testMessage(client)
-		//sendMessage(client, ((c+rand.Intn(4))%4)+1, "kick")
-		//sendMessage(client, ((c+rand.Intn(4))%4)+1, "snare")
-		//sendMelodyMessage(client, ((c+rand.Intn(4))%4)+1, ((c+rand.Intn(4))%4)+1, "bass")
-		//sendMessage(client, ((c+rand.Intn(4))%4)+1, "hh")
-		//sendMelodyMessage(client, ((c+rand.Intn(3))%3)+1, ((c+rand.Intn(4))%4)+1, "chords")
-		//sendMelodyMessage(client, ((c+rand.Intn(8))%8)+1, ((c+rand.Intn(4))%4)+1, "melody")
+		//testMessage(client)
+		sendMessage(client, ((c+rand.Intn(4))%4)+1, "kick")
+		sendMessage(client, ((c+rand.Intn(4))%4)+1, "snare")
+		sendMelodyMessage(client, ((c+rand.Intn(4))%4)+1, ((c+rand.Intn(4))%4)+1, "bass")
+		sendMessage(client, ((c+rand.Intn(4))%4)+1, "hh")
+		sendMelodyMessage(client, ((c+rand.Intn(3))%3)+1, ((c+rand.Intn(4))%4)+1, "chords")
+		sendMelodyMessage(client, ((c+rand.Intn(8))%8)+1, ((c+rand.Intn(4))%4)+1, "melody")
 
 		dur := time.Duration(rand.Intn(5)) * time.Second
 		fmt.Println(dur)
