@@ -269,6 +269,7 @@ func main() {
 					instrument.sendMessage(client, value.currentLevel, speed, instrument.name)
 
 					info = fmt.Sprintf("MAC: %s, instrument: %s, pps: %f, bps: %f, elapsed: %d", key, instrument.name, pps, bps, elapsed)
+					fmt.Println(info)
 					server.BroadcastTo("chat", "chat message", info)
 				}
 			}
@@ -305,16 +306,16 @@ func main() {
 	}()
 
 	for packet := range packetSource.Packets() {
-		fmt.Println(packet)
+		// fmt.Println(packet)
 		// Let's see if the packet is an ethernet packet
 		ethernetLayer := packet.Layer(layers.LayerTypeEthernet)
 		if ethernetLayer != nil {
-			fmt.Println("Ethernet layer detected.")
+			// fmt.Println("Ethernet layer detected.")
 			ethernetPacket, _ := ethernetLayer.(*layers.Ethernet)
-			fmt.Println("Source MAC: ", ethernetPacket.SrcMAC)
-			fmt.Println("Destination MAC: ", ethernetPacket.DstMAC)
+			// fmt.Println("Source MAC: ", ethernetPacket.SrcMAC)
+			// fmt.Println("Destination MAC: ", ethernetPacket.DstMAC)
 			// Ethernet type is typically IPv4 but could be ARP or other
-			fmt.Println("Ethernet type: ", ethernetPacket.EthernetType)
+			// fmt.Println("Ethernet type: ", ethernetPacket.EthernetType)
 
 			clients.Lock()
 			_, ok := clients.m[ethernetPacket.SrcMAC.String()]
