@@ -226,6 +226,7 @@ func main() {
 
 	fmt.Println(handle.LinkType())
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
+	fmt.Println("Connection to ", *serverHost, *serverPort)
 	client := osc.NewClient(*serverHost, *serverPort)
 
 	var clients = struct {
@@ -320,7 +321,7 @@ func main() {
 			clients.Lock()
 			_, ok := clients.m[ethernetPacket.SrcMAC.String()]
 			packetLength := len(ethernetPacket.Payload)
-			fmt.Println(clients.instrumentPool)
+			// fmt.Println(clients.instrumentPool)
 			if ok {
 				p := clients.m[ethernetPacket.SrcMAC.String()]
 				p.increment()
