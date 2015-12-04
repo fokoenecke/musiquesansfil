@@ -43,9 +43,9 @@ func (activity *activity) addPacketSize(size int) {
 
 type instrument struct {
 	name               string
-	mapLevel           func(bps float64) int
+	mapLevel           func(bps float64) (int, int)
 	adjustCurrentLevel func(client *activity, targetLevel int)
-	sendMessage        func(client *osc.Client, level int, speed int, instrument string)
+	sendMessage        func(client *osc.Client, level int, pitch int, offbeat int, instrument string)
 }
 
 type ticker struct {
@@ -54,17 +54,17 @@ type ticker struct {
 	resetDelay time.Duration
 }
 
-func mapSpeedLevel(pps float64) int {
+func mapPitchLevel(pps float64) int {
 	var level int
-	if pps > 6 {
+	if pps > 200 {
 		level = 4
-	} else if pps > 3 {
+	} else if pps > 100 {
 		level = 3
-	} else if pps > 2 {
+	} else if pps > 50 {
 		level = 2
+	} else if pps > 15 {
+		level = 1
 	} else if pps > 1 {
-		level = 1
-	} else if pps > .5 {
 		level = 8
 	} else {
 		level = 16
@@ -72,62 +72,139 @@ func mapSpeedLevel(pps float64) int {
 	return level
 }
 
-func mapDrumLevel(bps float64) int {
+func mapDrumLevel(bps float64) (int, int) {
 	var level int
-	if bps > 150 {
+	var offbeat int
+
+	if bps > 5000 {
 		level = 4
-	} else if bps > 120 {
+		offbeat = 3
+	} else if bps > 4000 {
+		level = 4
+		offbeat = 0
+	} else if bps > 3000 {
 		level = 3
-	} else if bps > 70 {
-		level = 2
-	} else if bps > 30 {
-		level = 1
-	} else if bps > 15 {
-		level = 8
-	} else if bps > 5 {
-		level = 16
-	} else {
-		level = 0
-	}
-	return level
-}
-
-func mapChordLevel(bps float64) int {
-	var level int
-	if bps > 100 {
+		offbeat = 3
+	} else if bps > 2000 {
 		level = 3
-	} else if bps > 70 {
+		offbeat = 0
+	} else if bps > 1000 {
 		level = 2
-	} else if bps > 40 {
+		offbeat = 3
+	} else if bps > 500 {
+		level = 2
+		offbeat = 0
+	} else if bps > 300 {
 		level = 1
-	} else if bps > 10 {
-		level = 0
-	}
-	return level
-}
-
-func mapMelodyLevel(bps float64) int {
-	var level int
-	if bps > 150 {
-		level = 8
-	} else if bps > 130 {
-		level = 7
+		offbeat = 3
+	} else if bps > 200 {
+		level = 1
+		offbeat = 0
 	} else if bps > 100 {
-		level = 6
-	} else if bps > 80 {
-		level = 5
-	} else if bps > 40 {
-		level = 4
-	} else if bps > 30 {
-		level = 3
+		level = 8
+		offbeat = 3
+	} else if bps > 50 {
+		level = 8
+		offbeat = 0
 	} else if bps > 10 {
-		level = 2
+		level = 16
+		offbeat = 3
 	} else if bps > 5 {
-		level = 1
+		level = 16
+		offbeat = 0
 	} else {
 		level = 0
+		offbeat = 0
 	}
-	return level
+	return level, offbeat
+}
+
+func mapChordLevel(bps float64) (int, int) {
+	var level int
+	var offbeat int
+
+	if bps > 2000 {
+		level = 3
+		offbeat = 3
+	} else if bps > 1200 {
+		level = 3
+		offbeat = 0
+	} else if bps > 600 {
+		level = 2
+		offbeat = 3
+	} else if bps > 150 {
+		level = 2
+		offbeat = 0
+	} else if bps > 70 {
+		level = 1
+		offbeat = 3
+	} else if bps > 10 {
+		level = 1
+		offbeat = 0
+	} else {
+		level = 0
+		offbeat = 0
+	}
+	return level, offbeat
+}
+
+func mapMelodyLevel(bps float64) (int, int) {
+	var level int
+	var offbeat int
+
+	if bps > 5000 {
+		level = 8
+		offbeat = 3
+	} else if bps > 4000 {
+		level = 8
+		offbeat = 0
+	} else if bps > 3000 {
+		level = 7
+		offbeat = 3
+	} else if bps > 2000 {
+		level = 7
+		offbeat = 0
+	} else if bps > 1000 {
+		level = 6
+		offbeat = 3
+	} else if bps > 500 {
+		level = 6
+		offbeat = 0
+	} else if bps > 300 {
+		level = 5
+		offbeat = 3
+	} else if bps > 200 {
+		level = 5
+		offbeat = 0
+	} else if bps > 100 {
+		level = 4
+		offbeat = 3
+	} else if bps > 70 {
+		level = 4
+		offbeat = 0
+	} else if bps > 50 {
+		level = 3
+		offbeat = 3
+	} else if bps > 30 {
+		level = 3
+		offbeat = 0
+	} else if bps > 20 {
+		level = 2
+		offbeat = 3
+	} else if bps > 10 {
+		level = 2
+		offbeat = 0
+	} else if bps > 5 {
+		level = 1
+		offbeat = 3
+	} else if bps > 3 {
+		level = 1
+		offbeat = 0
+	} else {
+		level = 0
+		offbeat = 0
+	}
+	return level, offbeat
 }
 
 func adjustDrumLevel(client *activity, targetLevel int) {
@@ -199,7 +276,7 @@ func oscServ(t *ticker) {
 
 			t.Lock()
 			t.msgDelay = millis
-			t.resetDelay = millis * 4
+			t.resetDelay = millis * 8
 			t.Unlock()
 
 		}
@@ -259,7 +336,7 @@ func main() {
 	}
 
 	server := serv()
-	t := &ticker{msgDelay: time.Duration(2) * time.Second, resetDelay: time.Duration(8) * time.Second}
+	t := &ticker{msgDelay: time.Duration(2) * time.Second, resetDelay: time.Duration(16) * time.Second}
 	oscServ(t)
 
 	go func() {
@@ -274,15 +351,15 @@ func main() {
 				instrument, ok := instruments[value.instrument]
 				info := ""
 				if ok {
-					targetLevel := instrument.mapLevel(bps)
+					targetLevel, offbeat := instrument.mapLevel(bps)
 					if targetLevel == 0 {
 						clients.instrumentPool = append(clients.instrumentPool, value.instrument)
 						sort.Ints(clients.instrumentPool)
 						delete(clients.m, key)
 					}
-					speed := mapSpeedLevel(pps)
+					pitch := mapPitchLevel(pps)
 					instrument.adjustCurrentLevel(value, targetLevel)
-					instrument.sendMessage(client, value.currentLevel, speed, instrument.name)
+					instrument.sendMessage(client, value.currentLevel, pitch, offbeat, instrument.name)
 
 					info = fmt.Sprintf("MAC: %s, instrument: %s, pps: %f, bps: %f, elapsed: %d", key, instrument.name, pps, bps, elapsed)
 					fmt.Println(info)
@@ -370,17 +447,19 @@ func main() {
 	}
 }
 
-func sendDrumMessage(client *osc.Client, level int, speed int, instrument string) {
+func sendDrumMessage(client *osc.Client, level int, pitch int, offbeat int, instrument string) {
 	msg := osc.NewMessage("/instrument/" + instrument)
 	fmt.Println("sending", level, "to", instrument)
 	msg.Append(int32(level))
+	msg.Append(int32(offbeat))
 	client.Send(msg)
 }
 
-func sendMelodyMessage(client *osc.Client, level int, speed int, instrument string) {
+func sendMelodyMessage(client *osc.Client, level int, pitch int, offbeat int, instrument string) {
 	msg := osc.NewMessage("/instrument/" + instrument)
-	fmt.Println("sending", level, ",", speed, "to", instrument)
+	fmt.Println("sending", level, ",", pitch, "to", instrument)
 	msg.Append(int32(level))
-	msg.Append(int32(speed))
+	msg.Append(int32(pitch))
+	msg.Append(int32(offbeat))
 	client.Send(msg)
 }
