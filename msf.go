@@ -250,10 +250,10 @@ func main() {
 	}{m: make(map[string]*activity)}
 
 	instruments := map[int]*instrument{
-		0: &instrument{"kick", mapDrumLevel, adjustDrumLevel, sendDrumMessage},
-		1: &instrument{"snare", mapDrumLevel, adjustDrumLevel, sendDrumMessage},
-		2: &instrument{"hh", mapDrumLevel, adjustDrumLevel, sendDrumMessage},
-		3: &instrument{"bass", mapMelodyLevel, adjustMelodyLevel, sendMelodyMessage},
+		0: &instrument{"snare", mapDrumLevel, adjustDrumLevel, sendDrumMessage},
+		1: &instrument{"kick", mapDrumLevel, adjustDrumLevel, sendDrumMessage},
+		2: &instrument{"bass", mapMelodyLevel, adjustMelodyLevel, sendMelodyMessage},
+		3: &instrument{"hh", mapDrumLevel, adjustDrumLevel, sendDrumMessage},
 		4: &instrument{"melody", mapMelodyLevel, adjustMelodyLevel, sendMelodyMessage},
 		5: &instrument{"chords", mapChordLevel, adjustLevel, sendMelodyMessage},
 	}
