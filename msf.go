@@ -449,7 +449,7 @@ func main() {
 
 func sendDrumMessage(client *osc.Client, level int, pitch int, offbeat int, instrument string) {
 	msg := osc.NewMessage("/instrument/" + instrument)
-	fmt.Println("sending", level, "to", instrument)
+	fmt.Println("sending", level, ",", offbeat, "to", instrument)
 	msg.Append(int32(level))
 	msg.Append(int32(offbeat))
 	client.Send(msg)
@@ -457,7 +457,7 @@ func sendDrumMessage(client *osc.Client, level int, pitch int, offbeat int, inst
 
 func sendMelodyMessage(client *osc.Client, level int, pitch int, offbeat int, instrument string) {
 	msg := osc.NewMessage("/instrument/" + instrument)
-	fmt.Println("sending", level, ",", pitch, "to", instrument)
+	fmt.Println("sending", level, ",", pitch, ",", offbeat, "to", instrument)
 	msg.Append(int32(level))
 	msg.Append(int32(pitch))
 	msg.Append(int32(offbeat))

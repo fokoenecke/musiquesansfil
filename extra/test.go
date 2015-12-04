@@ -64,12 +64,12 @@ func main() {
 
 	for {
 		//testMessage(client)
-		sendMessage(client, ((c+rand.Intn(4))%4)+1, "kick")
-		sendMessage(client, ((c+rand.Intn(4))%4)+1, "snare")
-		sendMelodyMessage(client, ((c+rand.Intn(4))%4)+1, ((c+rand.Intn(4))%4)+1, "bass")
-		sendMessage(client, ((c+rand.Intn(4))%4)+1, "hh")
-		sendMelodyMessage(client, ((c+rand.Intn(3))%3)+1, ((c+rand.Intn(4))%4)+1, "chords")
-		sendMelodyMessage(client, ((c+rand.Intn(8))%8)+1, ((c+rand.Intn(4))%4)+1, "melody")
+		sendMessage(client, ((c+rand.Intn(4))%4)+1, rand.Intn(1)*3, "kick")
+		sendMessage(client, ((c+rand.Intn(4))%4)+1, rand.Intn(1)*3, "snare")
+		sendMelodyMessage(client, ((c+rand.Intn(4))%4)+1, ((c+rand.Intn(4))%4)+1, rand.Intn(1)*3, "bass")
+		sendMessage(client, ((c+rand.Intn(4))%4)+1, rand.Intn(1)*3, "hh")
+		sendMelodyMessage(client, ((c+rand.Intn(3))%3)+1, ((c+rand.Intn(4))%4)+1, rand.Intn(1)*3, "chords")
+		sendMelodyMessage(client, ((c+rand.Intn(8))%8)+1, ((c+rand.Intn(4))%4)+1, rand.Intn(1)*3, "melody")
 
 		dur := time.Duration(rand.Intn(5)) * time.Second
 		fmt.Println(dur)
@@ -80,16 +80,16 @@ func main() {
 
 }
 
-func sendMessage(client *osc.Client, level int, instrument string) {
-	fmt.Println("sending:", level, "to:", instrument)
+func sendMessage(client *osc.Client, level int, offbeat int, instrument string) {
+	fmt.Println("sending:", level, ",", offbeat, "to:", instrument)
 	msg := osc.NewMessage("/instrument/" + instrument)
 	msg.Append(int32(level))
 	client.Send(msg)
 }
 
-func sendMelodyMessage(client *osc.Client, level int, speed int, instrument string) {
+func sendMelodyMessage(client *osc.Client, level int, speed int, offbeat int, instrument string) {
 	msg := osc.NewMessage("/instrument/" + instrument)
-	fmt.Println("sending", level, ",", speed, "to", instrument)
+	fmt.Println("sending", level, ",", speed, ",", offbeat, "to", instrument)
 	msg.Append(int32(level))
 	msg.Append(int32(speed))
 	client.Send(msg)
