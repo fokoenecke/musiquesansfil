@@ -453,7 +453,6 @@ func main() {
 				instrument, ok := instruments[value.instrument]
 				info := ""
 
-				fmt.Println(key)
 				if ok {
 					targetLevel, offbeat := instrument.mapLevel(bps)
 					if targetLevel == 0 {
@@ -468,6 +467,10 @@ func main() {
 					info = fmt.Sprintf("MAC: %s, instrument: %s, pps: %f, bps: %f, elapsed: %f, level: %d, pitch: %d", key, instrument.name, pps, bps, elapsed.Seconds(), value.currentLevel, pitch)
 					//fmt.Println(info)
 					server.BroadcastTo("chat", "chat message", info)
+				} else {
+					clients.instrumentPool = append(clients.instrumentPool, value.instrument)
+					sort.Ints(clients.instrumentPool)
+					delete(clients.m, key)
 				}
 			}
 			if len(clients.m) > 0 {
