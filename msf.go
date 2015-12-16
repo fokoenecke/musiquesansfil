@@ -21,6 +21,8 @@ var serverHost = flag.String("s", "127.0.0.1", "Set Pure Data server host")
 var serverPort = flag.Int("p", 9001, "Set Pure Data server port")
 var device = flag.String("d", "wlan0", "Set device to listen on")
 
+var hostIP string
+
 type activity struct {
 	packets      int
 	sizeSum      int
@@ -230,12 +232,14 @@ func adjustLevel(client *activity, targetLevel int) {
 	}
 }
 
-type data struct{}
+type data struct {
+	IP string
+}
 
 func index(w http.ResponseWriter, r *http.Request) {
 	t, _ := template.ParseFiles("tmpl/index.html")
-
-	val := data{}
+	fmt.Print(hostIP)
+	val := data{hostIP}
 	t.Execute(w, val)
 }
 
@@ -278,7 +282,6 @@ func oscServ(t *ticker) {
 			t.msgDelay = millis
 			t.resetDelay = millis * 8
 			t.Unlock()
-
 		}
 	})
 
@@ -299,6 +302,7 @@ func main() {
 			fmt.Println(dev)
 			for _, address := range dev.Addresses {
 				filter = fmt.Sprintf("not ip host %s ", address.IP)
+				hostIP = address.IP.String()
 				break
 			}
 		}
@@ -343,7 +347,15 @@ func main() {
 		for {
 			clients.Lock()
 
-			for key, value := range clients.m {
+			var keys []string
+			for k := range clients.m {
+				keys = append(keys, k)
+			}
+			sort.Strings(keys)
+
+			server.BroadcastTo("chat", "chat clear", "")
+			for _, key := range keys {
+				value := clients.m[key]
 				elapsed := time.Since(value.since)
 				pps := float64(value.currentPackets()) / elapsed.Seconds()
 				bps := float64(value.sizeSum) / elapsed.Seconds()
@@ -361,7 +373,7 @@ func main() {
 					instrument.adjustCurrentLevel(value, targetLevel)
 					instrument.sendMessage(client, value.currentLevel, pitch, offbeat, instrument.name)
 
-					info = fmt.Sprintf("MAC: %s, instrument: %s, pps: %f, bps: %f, elapsed: %d", key, instrument.name, pps, bps, elapsed)
+					info = fmt.Sprintf("MAC: %s, instrument: %s, pps: %f, bps: %f, elapsed: %f, level: %d, pitch: %d", key, instrument.name, pps, bps, elapsed.Seconds(), value.currentLevel, pitch)
 					fmt.Println(info)
 					server.BroadcastTo("chat", "chat message", info)
 				}
@@ -410,24 +422,9 @@ func main() {
 			// fmt.Println("Ethernet type: ", ethernetPacket.EthernetType)
 
 			clients.Lock()
-			_, ok := clients.m[ethernetPacket.SrcMAC.String()]
 			packetLength := len(ethernetPacket.Payload)
-			// fmt.Println(clients.instrumentPool)
-			if ok {
-				p := clients.m[ethernetPacket.SrcMAC.String()]
-				p.increment()
-				p.addPacketSize(packetLength)
-			} else {
-				var instrument int
-				if len(clients.instrumentPool) != 0 {
-					instrument = clients.instrumentPool[0]
-					clients.instrumentPool = append(clients.instrumentPool[:0], clients.instrumentPool[0+1:]...)
-				} else {
-					instrument = len(clients.m)
-				}
-				clients.m[ethernetPacket.SrcMAC.String()] = &activity{1, packetLength, time.Now(), instrument, 0}
-			}
-			_, ok = clients.m[ethernetPacket.DstMAC.String()]
+
+			_, ok := clients.m[ethernetPacket.DstMAC.String()]
 			if ok {
 				p := clients.m[ethernetPacket.DstMAC.String()]
 				p.increment()

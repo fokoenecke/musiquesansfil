@@ -15,10 +15,13 @@
     <script src="https://cdn.socket.io/socket.io-1.3.7.js"></script>
     <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
     <script>
-      var socket = io("http://192.168.178.37:8000/socket.io/");
+      var socket = io("http://{{.IP}}:8000/socket.io/");
       socket.on('chat message', function(msg){
         console.log(msg);
         $('#messages').append($('<li>').text(msg));
+      });
+      socket.on('chat clear', function(msg) {
+        $('#messages').empty();
       });
     </script>
   </body>
