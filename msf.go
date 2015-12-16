@@ -474,6 +474,14 @@ func main() {
 					delete(clients.m, key)
 				}
 			}
+			var delayValue int
+			if len(clients.m) > 4 {
+				delayValue = 0
+			} else {
+				delayValue = 1
+			}
+			sendDelayMessage(client, delayValue)
+
 			if len(clients.m) > 0 {
 				fmt.Println()
 			}
@@ -552,5 +560,11 @@ func sendMelodyMessage(client *osc.Client, level int, pitch int, offbeat int, in
 	msg.Append(int32(level))
 	msg.Append(int32(pitch))
 	msg.Append(int32(offbeat))
+	client.Send(msg)
+}
+
+func sendDelayMessage(client *osc.Client, value int) {
+	msg := osc.NewMessage("/delay/")
+	msg.Append(int32(value))
 	client.Send(msg)
 }
