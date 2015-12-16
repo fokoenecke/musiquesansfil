@@ -414,7 +414,7 @@ func main() {
 						sort.Ints(clients.instrumentPool)
 						delete(clients.m, key)
 					}
-					pitch := mapPitchLevel(pps)
+					pitch := instrument.mapPitchLevel(pps)
 					instrument.adjustCurrentLevel(value, targetLevel)
 					instrument.sendMessage(client, value.currentLevel, pitch, offbeat, instrument.name)
 
