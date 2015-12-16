@@ -427,6 +427,7 @@ func main() {
 		5: &instrument{"melody2", mapMelodyLevel, adjustMelodyLevel, sendMelodyMessage, mapPitchLevel},
 		6: &instrument{"chords", mapChordLevel, adjustLevel, sendMelodyMessage, mapChordPitchLevel},
 		7: &instrument{"conga", mapDrumLevel, adjustDrumLevel, sendDrumMessage, mapPitchLevel},
+		8: &instrument{"clap", mapDrumLevel, adjustDrumLevel, sendDrumMessage, mapPitchLevel},
 	}
 
 	server := serv()
