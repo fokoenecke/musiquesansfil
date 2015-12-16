@@ -48,6 +48,7 @@ type instrument struct {
 	mapLevel           func(bps float64) (int, int)
 	adjustCurrentLevel func(client *activity, targetLevel int)
 	sendMessage        func(client *osc.Client, level int, pitch int, offbeat int, instrument string)
+	mapPitchLevel      func(pps float64) int
 }
 
 type ticker struct {
@@ -59,17 +60,37 @@ type ticker struct {
 func mapPitchLevel(pps float64) int {
 	var level int
 	if pps > 200 {
+		level = 7
+	} else if pps > 150 {
+		level = 6
+	} else if pps > 100 {
+		level = 5
+	} else if pps > 75 {
+		level = 4
+	} else if pps > 50 {
+		level = 3
+	} else if pps > 20 {
+		level = 2
+	} else if pps > 5 {
+		level = 1
+	} else {
+		level = 0
+	}
+	return level
+}
+
+func mapChordPitchLevel(pps float64) int {
+	var level int
+	if pps > 150 {
 		level = 4
 	} else if pps > 100 {
 		level = 3
 	} else if pps > 50 {
 		level = 2
-	} else if pps > 15 {
+	} else if pps > 5 {
 		level = 1
-	} else if pps > 1 {
-		level = 8
 	} else {
-		level = 16
+		level = 0
 	}
 	return level
 }
@@ -351,14 +372,14 @@ func main() {
 	}{m: make(map[string]*activity)}
 
 	instruments := map[int]*instrument{
-		0: &instrument{"snare", mapDrumLevel, adjustDrumLevel, sendDrumMessage},
-		1: &instrument{"kick", mapKickLevel, adjustDrumLevel, sendDrumMessage},
-		2: &instrument{"bass", mapMelodyLevel, adjustMelodyLevel, sendMelodyMessage},
-		3: &instrument{"hh", mapDrumLevel, adjustDrumLevel, sendDrumMessage},
-		4: &instrument{"melody", mapMelodyLevel, adjustMelodyLevel, sendMelodyMessage},
-		5: &instrument{"melody2", mapMelodyLevel, adjustMelodyLevel, sendMelodyMessage},
-		6: &instrument{"chords", mapChordLevel, adjustLevel, sendMelodyMessage},
-		7: &instrument{"conga", mapDrumLevel, adjustDrumLevel, sendDrumMessage},
+		0: &instrument{"snare", mapDrumLevel, adjustDrumLevel, sendDrumMessage, mapPitchLevel},
+		1: &instrument{"kick", mapKickLevel, adjustDrumLevel, sendDrumMessage, mapPitchLevel},
+		2: &instrument{"bass", mapMelodyLevel, adjustMelodyLevel, sendMelodyMessage, mapPitchLevel},
+		3: &instrument{"hh", mapDrumLevel, adjustDrumLevel, sendDrumMessage, mapPitchLevel},
+		4: &instrument{"melody", mapMelodyLevel, adjustMelodyLevel, sendMelodyMessage, mapPitchLevel},
+		5: &instrument{"melody2", mapMelodyLevel, adjustMelodyLevel, sendMelodyMessage, mapPitchLevel},
+		6: &instrument{"chords", mapChordLevel, adjustLevel, sendMelodyMessage, mapChordPitchLevel},
+		7: &instrument{"conga", mapDrumLevel, adjustDrumLevel, sendDrumMessage, mapPitchLevel},
 	}
 
 	server := serv()
