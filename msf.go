@@ -476,9 +476,9 @@ func main() {
 			}
 			var delayValue int
 			if len(clients.m) > 4 {
-				delayValue = 0
-			} else {
 				delayValue = 1
+			} else {
+				delayValue = 0
 			}
 			sendDelayMessage(client, delayValue)
 
