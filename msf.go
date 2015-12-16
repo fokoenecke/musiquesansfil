@@ -142,6 +142,53 @@ func mapDrumLevel(bps float64) (int, int) {
 	return level, offbeat
 }
 
+func mapSnareLevel(bps float64) (int, int) {
+	var level int
+	var offbeat int
+
+	if bps > 20000 {
+		level = 4
+		offbeat = 3
+	} else if bps > 17000 {
+		level = 4
+		offbeat = 0
+	} else if bps > 15000 {
+		level = 3
+		offbeat = 3
+	} else if bps > 10000 {
+		level = 3
+		offbeat = 0
+	} else if bps > 7500 {
+		level = 2
+		offbeat = 3
+	} else if bps > 5000 {
+		level = 2
+		offbeat = 0
+	} else if bps > 3000 {
+		level = 1
+		offbeat = 3
+	} else if bps > 2000 {
+		level = 1
+		offbeat = 0
+	} else if bps > 500 {
+		level = 8
+		offbeat = 3
+	} else if bps > 250 {
+		level = 8
+		offbeat = 0
+	} else if bps > 100 {
+		level = 16
+		offbeat = 3
+	} else if bps > 50 {
+		level = 16
+		offbeat = 0
+	} else {
+		level = 0
+		offbeat = 0
+	}
+	return level, offbeat
+}
+
 func mapKickLevel(bps float64) (int, int) {
 	var level int
 	offbeat := 0
@@ -372,7 +419,7 @@ func main() {
 	}{m: make(map[string]*activity)}
 
 	instruments := map[int]*instrument{
-		0: &instrument{"snare", mapDrumLevel, adjustDrumLevel, sendDrumMessage, mapPitchLevel},
+		0: &instrument{"snare", mapSnareLevel, adjustDrumLevel, sendDrumMessage, mapPitchLevel},
 		1: &instrument{"kick", mapKickLevel, adjustDrumLevel, sendDrumMessage, mapPitchLevel},
 		2: &instrument{"bass", mapMelodyLevel, adjustMelodyLevel, sendMelodyMessage, mapPitchLevel},
 		3: &instrument{"hh", mapDrumLevel, adjustDrumLevel, sendDrumMessage, mapPitchLevel},
