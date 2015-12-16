@@ -146,40 +146,40 @@ func mapSnareLevel(bps float64) (int, int) {
 	var level int
 	var offbeat int
 
-	if bps > 20000 {
+	if bps > 15000 {
 		level = 4
 		offbeat = 3
-	} else if bps > 17000 {
+	} else if bps > 13000 {
 		level = 4
 		offbeat = 0
-	} else if bps > 15000 {
+	} else if bps > 12000 {
 		level = 3
 		offbeat = 3
-	} else if bps > 10000 {
-		level = 3
-		offbeat = 0
 	} else if bps > 7500 {
-		level = 2
-		offbeat = 3
+		level = 3
+		offbeat = 0
 	} else if bps > 5000 {
 		level = 2
-		offbeat = 0
-	} else if bps > 3000 {
-		level = 1
 		offbeat = 3
+	} else if bps > 3500 {
+		level = 2
+		offbeat = 0
 	} else if bps > 2000 {
 		level = 1
+		offbeat = 3
+	} else if bps > 1500 {
+		level = 1
 		offbeat = 0
-	} else if bps > 500 {
+	} else if bps > 200 {
 		level = 8
 		offbeat = 3
-	} else if bps > 250 {
+	} else if bps > 100 {
 		level = 8
 		offbeat = 0
-	} else if bps > 100 {
+	} else if bps > 40 {
 		level = 16
 		offbeat = 3
-	} else if bps > 50 {
+	} else if bps > 15 {
 		level = 16
 		offbeat = 0
 	} else {
