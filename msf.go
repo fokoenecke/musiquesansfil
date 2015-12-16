@@ -336,7 +336,9 @@ func main() {
 		2: &instrument{"bass", mapMelodyLevel, adjustMelodyLevel, sendMelodyMessage},
 		3: &instrument{"hh", mapDrumLevel, adjustDrumLevel, sendDrumMessage},
 		4: &instrument{"melody", mapMelodyLevel, adjustMelodyLevel, sendMelodyMessage},
-		5: &instrument{"chords", mapChordLevel, adjustLevel, sendMelodyMessage},
+		5: &instrument{"melody2", mapMelodyLevel, adjustMelodyLevel, sendMelodyMessage},
+		6: &instrument{"chords", mapChordLevel, adjustLevel, sendMelodyMessage},
+		7: &instrument{"conga", mapDrumLevel, adjustDrumLevel, sendDrumMessage},
 	}
 
 	server := serv()
@@ -362,6 +364,8 @@ func main() {
 
 				instrument, ok := instruments[value.instrument]
 				info := ""
+
+				fmt.Println(key)
 				if ok {
 					targetLevel, offbeat := instrument.mapLevel(bps)
 					if targetLevel == 0 {
@@ -424,11 +428,13 @@ func main() {
 			clients.Lock()
 			packetLength := len(ethernetPacket.Payload)
 
+			fmt.Println(packetLength)
+
 			_, ok := clients.m[ethernetPacket.DstMAC.String()]
 			if ok {
 				p := clients.m[ethernetPacket.DstMAC.String()]
 				p.increment()
-				p.addPacketSize(len(ethernetPacket.Contents))
+				p.addPacketSize(packetLength)
 			} else {
 				var instrument int
 				if len(clients.instrumentPool) != 0 {
