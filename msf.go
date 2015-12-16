@@ -564,7 +564,7 @@ func sendMelodyMessage(client *osc.Client, level int, pitch int, offbeat int, in
 }
 
 func sendDelayMessage(client *osc.Client, value int) {
-	msg := osc.NewMessage("/delay/")
+	msg := osc.NewMessage("/delay")
 	msg.Append(int32(value))
 	client.Send(msg)
 }
