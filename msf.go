@@ -441,7 +441,7 @@ func main() {
 		if ethernetLayer != nil {
 			// fmt.Println("Ethernet layer detected.")
 			ethernetPacket, _ := ethernetLayer.(*layers.Ethernet)
-			fmt.Println("Source MAC: ", ethernetPacket.SrcMAC, "Destination MAC: ", ethernetPacket.DstMAC)
+			// fmt.Println("Source MAC: ", ethernetPacket.SrcMAC, "Destination MAC: ", ethernetPacket.DstMAC)
 			// Ethernet type is typically IPv4 but could be ARP or other
 			// fmt.Println("Ethernet type: ", ethernetPacket.EthernetType)
 
@@ -450,10 +450,12 @@ func main() {
 
 			_, ok := clients.m[ethernetPacket.DstMAC.String()]
 			if ok {
+				fmt.Println("known MAC:", ethernetPacket.DstMAC.String())
 				p := clients.m[ethernetPacket.DstMAC.String()]
 				p.increment()
 				p.addPacketSize(packetLength)
 			} else {
+				fmt.Println("new MAC:", ethernetPacket.DstMAC.String())
 				var instrument int
 				if len(clients.instrumentPool) != 0 {
 					instrument = clients.instrumentPool[0]
