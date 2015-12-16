@@ -466,7 +466,7 @@ func main() {
 					instrument.sendMessage(client, value.currentLevel, pitch, offbeat, instrument.name)
 
 					info = fmt.Sprintf("MAC: %s, instrument: %s, pps: %f, bps: %f, elapsed: %f, level: %d, pitch: %d", key, instrument.name, pps, bps, elapsed.Seconds(), value.currentLevel, pitch)
-					fmt.Println(info)
+					//fmt.Println(info)
 					server.BroadcastTo("chat", "chat message", info)
 				}
 			}
@@ -518,12 +518,10 @@ func main() {
 
 			_, ok := clients.m[ethernetPacket.DstMAC.String()]
 			if ok {
-				fmt.Println("known MAC:", ethernetPacket.DstMAC.String())
 				p := clients.m[ethernetPacket.DstMAC.String()]
 				p.increment()
 				p.addPacketSize(packetLength)
 			} else {
-				fmt.Println("new MAC:", ethernetPacket.DstMAC.String())
 				var instrument int
 				if len(clients.instrumentPool) != 0 {
 					instrument = clients.instrumentPool[0]
