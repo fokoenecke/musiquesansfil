@@ -464,8 +464,8 @@ func main() {
 					instrument.adjustCurrentLevel(value, targetLevel)
 					instrument.sendMessage(client, value.currentLevel, pitch, offbeat, instrument.name)
 
-					info = fmt.Sprintf("MAC: %s, instrument: %s, pps: %f, bps: %f, elapsed: %f, level: %d, pitch: %d", key, instrument.name, pps, bps, elapsed.Seconds(), value.currentLevel, pitch)
-					//fmt.Println(info)
+					info = fmt.Sprintf("MAC: %s, instrument: %s, pps: %.2f, bps: %.2f, elapsed: %.2f, level: %d, pitch: %d", key, instrument.name, pps, bps, elapsed.Seconds(), value.currentLevel, pitch)
+					fmt.Println(info)
 					server.BroadcastTo("chat", "chat message", info)
 				} else {
 					clients.instrumentPool = append(clients.instrumentPool, value.instrument)
@@ -541,7 +541,6 @@ func main() {
 
 func sendDrumMessage(client *osc.Client, level int, pitch int, offbeat int, instrument string) {
 	msg := osc.NewMessage("/instrument/" + instrument)
-	fmt.Println("sending", level, ",", offbeat, "to", instrument)
 	msg.Append(int32(level))
 	msg.Append(int32(offbeat))
 	client.Send(msg)
@@ -549,7 +548,6 @@ func sendDrumMessage(client *osc.Client, level int, pitch int, offbeat int, inst
 
 func sendMelodyMessage(client *osc.Client, level int, pitch int, offbeat int, instrument string) {
 	msg := osc.NewMessage("/instrument/" + instrument)
-	fmt.Println("sending", level, ",", pitch, ",", offbeat, "to", instrument)
 	msg.Append(int32(level))
 	msg.Append(int32(pitch))
 	msg.Append(int32(offbeat))
