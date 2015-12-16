@@ -121,6 +121,26 @@ func mapDrumLevel(bps float64) (int, int) {
 	return level, offbeat
 }
 
+func mapKickLevel(bps float64) (int, int) {
+	var level int
+	offbeat := 0
+
+	if bps > 4000 {
+		level = 3
+	} else if bps > 2000 {
+		level = 2
+	} else if bps > 500 {
+		level = 1
+	} else if bps > 100 {
+		level = 8
+	} else if bps > 10 {
+		level = 16
+	} else {
+		level = 0
+	}
+	return level, offbeat
+}
+
 func mapChordLevel(bps float64) (int, int) {
 	var level int
 	var offbeat int
@@ -332,7 +352,7 @@ func main() {
 
 	instruments := map[int]*instrument{
 		0: &instrument{"snare", mapDrumLevel, adjustDrumLevel, sendDrumMessage},
-		1: &instrument{"kick", mapDrumLevel, adjustDrumLevel, sendDrumMessage},
+		1: &instrument{"kick", mapKickLevel, adjustDrumLevel, sendDrumMessage},
 		2: &instrument{"bass", mapMelodyLevel, adjustMelodyLevel, sendMelodyMessage},
 		3: &instrument{"hh", mapDrumLevel, adjustDrumLevel, sendDrumMessage},
 		4: &instrument{"melody", mapMelodyLevel, adjustMelodyLevel, sendMelodyMessage},
@@ -427,8 +447,6 @@ func main() {
 
 			clients.Lock()
 			packetLength := len(ethernetPacket.Payload)
-
-			fmt.Println(packetLength)
 
 			_, ok := clients.m[ethernetPacket.DstMAC.String()]
 			if ok {
