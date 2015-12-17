@@ -444,6 +444,12 @@ func main() {
 			}
 			sort.Strings(keys)
 
+			delayValue := 0
+			if len(keys) > 4 {
+				delayValue = 1
+			}
+			sendDelayMessage(client, delayValue)
+
 			server.BroadcastTo("chat", "chat clear", "")
 			for _, key := range keys {
 				value := clients.m[key]
@@ -474,13 +480,8 @@ func main() {
 					delete(clients.m, key)
 				}
 			}
-			delayValue := 0
-			if len(clients.m) > 4 {
-				delayValue = 1
-			}
-			sendDelayMessage(client, delayValue)
 
-			if len(clients.m) > 0 {
+			if len(keys) > 0 {
 				fmt.Println()
 			}
 			clients.Unlock()
@@ -564,6 +565,6 @@ func sendMelodyMessage(client *osc.Client, level int, pitch int, offbeat int, in
 func sendDelayMessage(client *osc.Client, value int) {
 	msg := osc.NewMessage("/delay")
 	msg.Append(int32(value))
-	fmt.Println("sending delay", value)
+	//fmt.Println("sending delay", value)
 	client.Send(msg)
 }
